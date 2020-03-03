@@ -20,7 +20,7 @@ namespace Client
     public partial class MainWindow : Window
     {
         System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        const string ServerIP = "127.0.0.1";
+        const string ServerIP = "192.168.178.157";
         const int port = 8888;
 
         public MainWindow()
