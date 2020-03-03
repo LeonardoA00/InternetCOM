@@ -20,8 +20,11 @@ namespace Client
     public partial class MainWindow : Window
     {
         System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        const string ServerIP = "192.168.178.157";
+        
+        //ENVIROMENT CONSTANTS
+        const string ServerIP = "127.0.0.1"; //192.168.178.157
         const int port = 8888;
+        const int buffersize = 10000;
 
         public MainWindow()
         {
@@ -30,6 +33,7 @@ namespace Client
             try 
             { 
                 clientSocket.Connect(ServerIP, port);
+                clientSocket.ReceiveBufferSize = buffersize;
                 ConnectionStatus.Content = "Client Socket Program - Server Connected ...";
             } 
             catch (Exception ex)
@@ -45,9 +49,10 @@ namespace Client
             serverStream.Write(outStream, 0, outStream.Length);
             serverStream.Flush();
 
-            byte[] inStream = new byte[10025];
+            byte[] inStream = new byte[buffersize];
             serverStream.Read(inStream, 0, (int)clientSocket.ReceiveBufferSize);
             string returndata = System.Text.Encoding.ASCII.GetString(inStream);
+            returndata = returndata.Substring(0, returndata.IndexOf('\0'));
             servermsg(returndata);
             ClientTextBox.Text = "";
             ClientTextBox.Focus();
@@ -55,7 +60,7 @@ namespace Client
 
         public void servermsg(string mesg)
         {
-            ServerTextBox.Text = ServerTextBox.Text + Environment.NewLine + " >> " + mesg;
+            ServerTextBox.Text += ">> " + mesg + Environment.NewLine;
         }
     }
 }

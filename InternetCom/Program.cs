@@ -8,6 +8,7 @@ namespace Server
     {
 
         const int port = 8888;
+        const int buffersize = 10000;
 
         static void Main(string[] args)
         {
@@ -16,6 +17,7 @@ namespace Server
             Console.WriteLine("...Server started");
             TcpClient clientSocket = default(TcpClient);
             clientSocket = serverSocket.AcceptTcpClient();
+            clientSocket.ReceiveBufferSize = buffersize;
             Console.WriteLine("...Accept connection from client");
 
             int requestCount = 0;
@@ -26,11 +28,8 @@ namespace Server
                     requestCount++;
                     NetworkStream networkStream = clientSocket.GetStream();
 
-                    byte[] bytesFrom = new byte[10025];
-                    int size = (int)clientSocket.ReceiveBufferSize;
-                    if (size == 65536)
-                        continue;
-                    networkStream.Read(bytesFrom, 0, size);
+                    byte[] bytesFrom = new byte[buffersize];
+                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
                     string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
                     dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
                     Console.WriteLine($">> {dataFromClient}");
