@@ -27,7 +27,10 @@ namespace Server
                     NetworkStream networkStream = clientSocket.GetStream();
 
                     byte[] bytesFrom = new byte[10025];
-                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
+                    int size = (int)clientSocket.ReceiveBufferSize;
+                    if (size == 65536)
+                        continue;
+                    networkStream.Read(bytesFrom, 0, size);
                     string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
                     dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
                     Console.WriteLine($">> {dataFromClient}");
