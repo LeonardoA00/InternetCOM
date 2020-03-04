@@ -8,7 +8,7 @@ namespace Server
     {
 
         const int port = 8888;
-        const int buffersize = 10000;
+        const int buffersize = 1024;
 
         static void Main(string[] args)
         {
