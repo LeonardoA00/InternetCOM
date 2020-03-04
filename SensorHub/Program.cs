@@ -90,7 +90,7 @@ namespace SensorHub
                     Console.WriteLine("Transmission failed");
                     return -2;
                 }
-
+                System.Threading.Thread.Sleep(1000);
             }
 
             Console.WriteLine("Done...");
