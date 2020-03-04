@@ -91,6 +91,7 @@ namespace SensorHub
                     return -2;
                 }
                 System.Threading.Thread.Sleep(1000);
+                //Find ideal idle time
             }
 
             Console.WriteLine("Done...");
