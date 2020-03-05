@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using SensorHub;
 
 namespace Server
 {
@@ -38,30 +39,25 @@ namespace Server
 
                     byte[] bytesFrom = new byte[buffersize];
                     networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
-                    string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
-                    dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
+                    
                     if(hubconnection == false)
                     {
+                        string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
+                        dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
                         Console.WriteLine($">> {dataFromClient}");
                         string serverResponse = "Recieved request " + requestCount.ToString();
                         byte[] sendBytes = System.Text.Encoding.ASCII.GetBytes(serverResponse);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
-                        networkStream.Flush();
                         Console.WriteLine($"--> {serverResponse}");
                     }
                     else
                     {
-                        string name = dataFromClient.Substring(0, dataFromClient.IndexOf('|'));
-                        string type = dataFromClient.Substring(dataFromClient.IndexOf('|') + 1, dataFromClient.LastIndexOf('|') - dataFromClient.IndexOf('|') - 1);
-                        string value;
-                        if (type == "STR")
-                            value = dataFromClient.Substring(dataFromClient.LastIndexOf('|') + 1, dataFromClient.Length - dataFromClient.LastIndexOf('|') - 1);
-                        else if(type == "INT")
-                        {
-
-                        }
+                        Data data = Data.UnPack(bytesFrom);
+                        Console.WriteLine(data.ToString());
                     }
-                    
+
+                    networkStream.Flush();
+
                 }
                 catch (Exception ex)
                 {

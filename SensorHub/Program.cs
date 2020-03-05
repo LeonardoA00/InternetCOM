@@ -3,7 +3,6 @@ using System.Net.Sockets;
 
 namespace SensorHub
 {
-
     class Program
     {
         static System.Net.Sockets.TcpClient socket;
@@ -15,17 +14,27 @@ namespace SensorHub
 
         static int Main(string[] args)
         {
-            Data tmp = new Data("test", 3.5f);
-            Console.WriteLine(tmp.ToString());
-            byte[] arr = Data.Pack(tmp);
-            Data tmp2 = Data.UnPack(arr);
-            Console.WriteLine(tmp2.ToString());
-            Console.ReadLine();
-            if (Connect() != 0)
-                return -1;
+            Console.WriteLine("--- SensorHub ---");
+            Console.Title = "SensorHub";
 
-            Data[] datas = GetDatas();
-            Transmit(datas);
+            //Connection phase. Calls the function to connect and after failed attempts request the user to go on
+            while(Connect() != 0)
+            {
+                Console.WriteLine("Could not connect to the server. Try again? (y/n)");
+                bool exit = !ynToBool(Console.ReadLine());
+                if (exit)
+                    return -1;
+            }
+            Console.WriteLine($"Connected succesfully to {ServerIP}:{port}");
+
+            //Gets data and transmits it
+            Console.WriteLine("\nSending data...");
+            while (true)
+            {
+                Data[] datas = GetDatas();
+                Transmit(datas);
+                System.Threading.Thread.Sleep(200);
+            }
 
             Console.WriteLine("Done...");
             Console.ReadLine();
@@ -34,10 +43,11 @@ namespace SensorHub
 
         static Data[] GetDatas()
         {
-            Data[] res = new Data[3];
-            res[0] = new Data("temperature", 23.5f);
-            res[1] = new Data("pressure", 25);
-            res[2] = new Data("light", "day");
+            Data[] res = new Data[2];
+            Random gen = new Random();
+
+            res[0] = new Data("TMP", gen.Next(19, 23) + (float)gen.NextDouble(), "°C");
+            res[1] = new Data("PRS", gen.Next(800, 1500), "kPa");
 
             return res;
         }
@@ -77,18 +87,42 @@ namespace SensorHub
         static int Connect()
         {
             socket = new System.Net.Sockets.TcpClient();
-            try
+
+            bool connected = false;
+            int attempts = 0;
+            char[] loading_bar = { '|', '/', '-', '\\'};
+
+            Console.Write("Connecting... ");
+            while (!connected && attempts < 20)
             {
-                socket.Connect(ServerIP, port);
-                socket.ReceiveBufferSize = buffersize;
+                Console.Write($"({loading_bar[attempts % 4]})");
+                try
+                {
+                    socket.Connect(ServerIP, port);
+                    socket.ReceiveBufferSize = buffersize;
+
+                    connected = true;
+                }
+                catch (Exception) { }
+                //System.Threading.Thread.Sleep(100);
+                Console.SetCursorPosition(Console.CursorLeft - 3, Console.CursorTop);
+
+                attempts++;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Unable to connecto to the server... Restart the app");
-                Console.WriteLine(ex.ToString());
+            Console.WriteLine();
+
+            if (connected)
+                return 0;
+            else
                 return -1;
-            }
-            return 0;
+        }
+
+        static bool ynToBool(string response)
+        {
+            if (response == "y" || response == "Y")
+                return true;
+            else
+                return false;
         }
     }
 }
